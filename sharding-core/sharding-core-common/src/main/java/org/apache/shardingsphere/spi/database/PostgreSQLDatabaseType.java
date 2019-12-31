@@ -40,7 +40,7 @@ public final class PostgreSQLDatabaseType implements DatabaseType {
     }
     
     @Override
-    public DataSourceMetaData getDataSourceMetaData(final String url) {
+    public PostgreSQLDataSourceMetaData getDataSourceMetaData(final String url, final String username) {
         return new PostgreSQLDataSourceMetaData(url);
     }
 }

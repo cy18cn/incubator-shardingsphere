@@ -21,20 +21,22 @@ import org.apache.shardingsphere.core.metadata.datasource.exception.Unrecognized
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 public final class SQL92DataSourceMetaDataTest {
     
     @Test
-    public void assertGetProperties() {
+    public void assertNewConstructorSuccess() {
         SQL92DataSourceMetaData actual = new SQL92DataSourceMetaData("jdbc:sql92_db:ds_0");
         assertThat(actual.getHostName(), is(""));
         assertThat(actual.getPort(), is(-1));
-        assertThat(actual.getSchemaName(), is(""));
+        assertThat(actual.getCatalog(), is(""));
+        assertNull(actual.getSchema());
     }
-
+    
     @Test(expected = UnrecognizedDatabaseURLException.class)
-    public void assertGetPropertiesFailure() {
+    public void assertNewConstructorFailure() {
         new SQL92DataSourceMetaData("xxx:xxxx:xxxxxxxx");
     }
 }

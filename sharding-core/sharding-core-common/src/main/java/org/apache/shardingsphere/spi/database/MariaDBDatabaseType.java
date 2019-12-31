@@ -37,11 +37,11 @@ public final class MariaDBDatabaseType implements BranchDatabaseType {
     
     @Override
     public Collection<String> getJdbcUrlPrefixAlias() {
-        return Collections.singletonList("jdbc:mariadb:");
+        return Collections.emptyList();
     }
     
     @Override
-    public DataSourceMetaData getDataSourceMetaData(final String url) {
+    public MariaDBDataSourceMetaData getDataSourceMetaData(final String url, final String username) {
         return new MariaDBDataSourceMetaData(url);
     }
     

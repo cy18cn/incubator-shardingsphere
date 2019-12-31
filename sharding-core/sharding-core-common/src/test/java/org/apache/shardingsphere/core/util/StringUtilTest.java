@@ -22,7 +22,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class StringUtilTest {
+public final class StringUtilTest {
     
     @Test
     public void assertIsBooleanValue() {
@@ -37,12 +37,5 @@ public class StringUtilTest {
     public void assertIsIntValue() {
         assertTrue(StringUtil.isIntValue("-10"));
         assertFalse(StringUtil.isIntValue("1-1"));
-    }
-    
-    @Test
-    public void assertIsLongValue() {
-        assertTrue(StringUtil.isLongValue("10"));
-        assertFalse(StringUtil.isLongValue("0.1"));
-        assertFalse(StringUtil.isLongValue("A"));
     }
 }

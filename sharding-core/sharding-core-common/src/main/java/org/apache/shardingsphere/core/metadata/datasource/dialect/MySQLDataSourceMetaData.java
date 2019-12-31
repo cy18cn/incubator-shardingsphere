@@ -39,7 +39,9 @@ public final class MySQLDataSourceMetaData implements DataSourceMetaData {
     
     private final int port;
     
-    private final String schemaName;
+    private final String catalog;
+    
+    private final String schema;
     
     private final Pattern pattern = Pattern.compile("jdbc:(mysql|mysqlx)(:loadbalance|:replication)?:(\\w*:)?//([\\w\\-\\.]+):?([0-9]*)/([\\w\\-]+);?\\S*", Pattern.CASE_INSENSITIVE);
     
@@ -50,6 +52,7 @@ public final class MySQLDataSourceMetaData implements DataSourceMetaData {
         }
         hostName = matcher.group(4);
         port = Strings.isNullOrEmpty(matcher.group(5)) ? DEFAULT_PORT : Integer.valueOf(matcher.group(5));
-        schemaName = matcher.group(6);
+        catalog = matcher.group(6);
+        schema = null;
     }
 }

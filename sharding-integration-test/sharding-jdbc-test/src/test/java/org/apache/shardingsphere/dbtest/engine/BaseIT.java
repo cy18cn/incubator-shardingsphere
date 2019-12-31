@@ -41,12 +41,14 @@ import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.TimeZone;
 
 @RunWith(Parameterized.class)
@@ -149,29 +151,26 @@ public abstract class BaseIT {
     
     private boolean isInSameDatabaseInstance(final DataSourceMetaData sample, final DataSourceMetaData target) {
         return sample instanceof MemorizedDataSourceMetaData
-                ? target.getSchemaName().equals(sample.getSchemaName()) : target.getHostName().equals(sample.getHostName()) && target.getPort() == sample.getPort();
+                ? (Objects.equals(target.getSchema(), sample.getSchema())) : target.getHostName().equals(sample.getHostName()) && target.getPort() == sample.getPort();
     }
     
     private Map<String, DataSourceMetaData> getDataSourceMetaDataMap() throws SQLException {
         Map<String, DataSourceMetaData> result = new LinkedHashMap<>();
         for (Entry<String, DataSource> entry : dataSourceMap.entrySet()) {
-            result.put(entry.getKey(), databaseTypeEnvironment.getDatabaseType().getDataSourceMetaData(getDataSourceURL(entry.getValue())));
+            try (Connection connection = entry.getValue().getConnection()) {
+                DatabaseMetaData metaData = connection.getMetaData();
+                result.put(entry.getKey(), databaseTypeEnvironment.getDatabaseType().getDataSourceMetaData(metaData.getURL(), metaData.getUserName()));
+            }
         }
         return result;
     }
     
-    private static String getDataSourceURL(final DataSource dataSource) throws SQLException {
-        try (Connection connection = dataSource.getConnection()) {
-            return connection.getMetaData().getURL();
-        }
-    }
-
     protected static void createDatabasesAndTables() {
         createDatabases();
         dropTables();
         createTables();
     }
-
+    
     protected static void createDatabases() {
         try {
             for (String each : integrateTestEnvironment.getShardingRuleTypes()) {
@@ -184,7 +183,7 @@ public abstract class BaseIT {
             ex.printStackTrace();
         }
     }
-
+    
     protected static void createTables() {
         try {
             for (String each : integrateTestEnvironment.getShardingRuleTypes()) {
@@ -194,7 +193,7 @@ public abstract class BaseIT {
             ex.printStackTrace();
         }
     }
-
+    
     protected static void dropDatabases() {
         try {
             for (String each : integrateTestEnvironment.getShardingRuleTypes()) {
@@ -204,7 +203,7 @@ public abstract class BaseIT {
             ex.printStackTrace();
         }
     }
-
+    
     protected static void dropTables() {
         try {
             for (String each : integrateTestEnvironment.getShardingRuleTypes()) {
@@ -214,7 +213,7 @@ public abstract class BaseIT {
             ex.printStackTrace();
         }
     }
-
+    
     @After
     public void tearDown() {
         if (dataSource instanceof ShardingDataSource) {

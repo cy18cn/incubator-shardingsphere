@@ -40,7 +40,7 @@ public final class MySQLDatabaseType implements DatabaseType {
     }
     
     @Override
-    public DataSourceMetaData getDataSourceMetaData(final String url) {
+    public MySQLDataSourceMetaData getDataSourceMetaData(final String url, final String username) {
         return new MySQLDataSourceMetaData(url);
     }
 }

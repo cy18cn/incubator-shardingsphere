@@ -40,7 +40,7 @@ public final class OracleDatabaseType implements DatabaseType {
     }
     
     @Override
-    public DataSourceMetaData getDataSourceMetaData(final String url) {
-        return new OracleDataSourceMetaData(url);
+    public OracleDataSourceMetaData getDataSourceMetaData(final String url, final String username) {
+        return new OracleDataSourceMetaData(url, username);
     }
 }

@@ -18,10 +18,12 @@
 package org.apache.shardingsphere.core.route.router.sharding;
 
 import org.apache.shardingsphere.core.metadata.ShardingSphereMetaData;
-import org.apache.shardingsphere.core.preprocessor.segment.table.TablesContext;
-import org.apache.shardingsphere.core.preprocessor.statement.SQLStatementContext;
+import org.apache.shardingsphere.sql.parser.relation.segment.table.TablesContext;
+import org.apache.shardingsphere.sql.parser.relation.statement.SQLStatementContext;
 import org.apache.shardingsphere.sql.parser.sql.statement.SQLStatement;
 import org.apache.shardingsphere.sql.parser.sql.statement.dal.DALStatement;
+import org.apache.shardingsphere.sql.parser.sql.statement.dal.dialect.mysql.ShowColumnsStatement;
+import org.apache.shardingsphere.sql.parser.sql.statement.dal.dialect.mysql.ShowCreateTableStatement;
 import org.apache.shardingsphere.sql.parser.sql.statement.dal.dialect.mysql.ShowDatabasesStatement;
 import org.apache.shardingsphere.sql.parser.sql.statement.dal.dialect.postgresql.SetStatement;
 import org.apache.shardingsphere.sql.parser.sql.statement.dcl.DCLStatement;
@@ -55,7 +57,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class RoutingEngineFactoryTest {
+public final class RoutingEngineFactoryTest {
     
     @Mock
     private ShardingRule shardingRule;
@@ -160,6 +162,7 @@ public class RoutingEngineFactoryTest {
     
     @Test
     public void assertNewInstanceForSelectWithDefaultDataSource() {
+        when(shardingRule.isAllInDefaultDataSource(tableNames)).thenReturn(false);
         when(shardingRule.hasDefaultDataSourceName()).thenReturn(true);
         SQLStatement sqlStatement = mock(SelectStatement.class);
         when(sqlStatementContext.getSqlStatement()).thenReturn(sqlStatement);
@@ -169,6 +172,7 @@ public class RoutingEngineFactoryTest {
     
     @Test
     public void assertNewInstanceForSelectWithoutDefaultDataSource() {
+        when(shardingRule.isAllInDefaultDataSource(tableNames)).thenReturn(false);
         when(shardingRule.hasDefaultDataSourceName()).thenReturn(false);
         SQLStatement sqlStatement = mock(SelectStatement.class);
         when(sqlStatementContext.getSqlStatement()).thenReturn(sqlStatement);
@@ -208,6 +212,7 @@ public class RoutingEngineFactoryTest {
         when(sqlStatementContext.getSqlStatement()).thenReturn(sqlStatement);
         tableNames.add("");
         when(shardingRule.getShardingLogicTableNames(tableNames)).thenReturn(tableNames);
+        when(shardingRule.tableRuleExists(tableNames)).thenReturn(true);
         RoutingEngine actual = RoutingEngineFactory.newInstance(shardingRule, shardingSphereMetaData, sqlStatementContext, shardingConditions);
         assertThat(actual, instanceOf(StandardRoutingEngine.class));
     }
@@ -219,7 +224,62 @@ public class RoutingEngineFactoryTest {
         tableNames.add("1");
         tableNames.add("2");
         when(shardingRule.getShardingLogicTableNames(tableNames)).thenReturn(tableNames);
+        when(shardingRule.tableRuleExists(tableNames)).thenReturn(true);
         RoutingEngine actual = RoutingEngineFactory.newInstance(shardingRule, shardingSphereMetaData, sqlStatementContext, shardingConditions);
         assertThat(actual, instanceOf(ComplexRoutingEngine.class));
     }
+    
+    @Test
+    public void assertNewInstanceForTableRuleNotExists() {
+        when(shardingRule.isAllInDefaultDataSource(tableNames)).thenReturn(false);
+        when(shardingRule.tableRuleExists(tableNames)).thenReturn(false);
+        SQLStatement sqlStatement = mock(SelectStatement.class);
+        when(sqlStatementContext.getSqlStatement()).thenReturn(sqlStatement);
+        tableNames.add("table_1");
+        RoutingEngine actual = RoutingEngineFactory.newInstance(shardingRule, shardingSphereMetaData, sqlStatementContext, shardingConditions);
+        assertThat(actual, instanceOf(UnicastRoutingEngine.class));
+    }
+    
+    @Test
+    public void assertNewInstanceForShowCreateTableWithTableRule() {
+        DALStatement dalStatement = mock(ShowCreateTableStatement.class);
+        when(sqlStatementContext.getSqlStatement()).thenReturn(dalStatement);
+        when(shardingRule.tableRuleExists(tableNames)).thenReturn(true);
+        tableNames.add("table_1");
+        RoutingEngine actual = RoutingEngineFactory.newInstance(shardingRule, shardingSphereMetaData, sqlStatementContext, shardingConditions);
+        assertThat(actual, instanceOf(UnicastRoutingEngine.class));
+    }
+    
+    @Test
+    public void assertNewInstanceForShowCreateTableWithDefaultDataSource() {
+        DALStatement dalStatement = mock(ShowCreateTableStatement.class);
+        when(sqlStatementContext.getSqlStatement()).thenReturn(dalStatement);
+        when(shardingRule.tableRuleExists(tableNames)).thenReturn(false);
+        when(shardingRule.hasDefaultDataSourceName()).thenReturn(true);
+        tableNames.add("table_1");
+        RoutingEngine actual = RoutingEngineFactory.newInstance(shardingRule, shardingSphereMetaData, sqlStatementContext, shardingConditions);
+        assertThat(actual, instanceOf(DefaultDatabaseRoutingEngine.class));
+    }
+    
+    @Test
+    public void assertNewInstanceForShowColumnsWithTableRule() {
+        DALStatement dalStatement = mock(ShowColumnsStatement.class);
+        when(sqlStatementContext.getSqlStatement()).thenReturn(dalStatement);
+        when(shardingRule.tableRuleExists(tableNames)).thenReturn(true);
+        tableNames.add("table_1");
+        RoutingEngine actual = RoutingEngineFactory.newInstance(shardingRule, shardingSphereMetaData, sqlStatementContext, shardingConditions);
+        assertThat(actual, instanceOf(UnicastRoutingEngine.class));
+    }
+    
+    @Test
+    public void assertNewInstanceForShowColumnsWithDefaultDataSource() {
+        DALStatement dalStatement = mock(ShowColumnsStatement.class);
+        when(sqlStatementContext.getSqlStatement()).thenReturn(dalStatement);
+        when(shardingRule.tableRuleExists(tableNames)).thenReturn(false);
+        when(shardingRule.hasDefaultDataSourceName()).thenReturn(true);
+        tableNames.add("table_1");
+        RoutingEngine actual = RoutingEngineFactory.newInstance(shardingRule, shardingSphereMetaData, sqlStatementContext, shardingConditions);
+        assertThat(actual, instanceOf(DefaultDatabaseRoutingEngine.class));
+    }
+    
 }

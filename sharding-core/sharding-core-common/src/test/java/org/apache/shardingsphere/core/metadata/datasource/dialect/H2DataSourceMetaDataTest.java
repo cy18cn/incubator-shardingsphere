@@ -21,28 +21,30 @@ import org.apache.shardingsphere.core.metadata.datasource.exception.Unrecognized
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 public final class H2DataSourceMetaDataTest {
     
     @Test
-    public void assertGetPropertiesWithMem() {
+    public void assertNewConstructorWithMem() {
         H2DataSourceMetaData actual = new H2DataSourceMetaData("jdbc:h2:mem:ds_0;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false;MODE=MySQL");
         assertThat(actual.getHostName(), is(""));
         assertThat(actual.getPort(), is(-1));
-        assertThat(actual.getSchemaName(), is("ds_0"));
+        assertThat(actual.getCatalog(), is("ds_0"));
+        assertNull(actual.getSchema());
     }
     
     @Test
-    public void assertGetPropertiesWithSymbol() {
+    public void assertNewConstructorWithSymbol() {
         H2DataSourceMetaData actual = new H2DataSourceMetaData("jdbc:h2:~:ds-0;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false;MODE=MySQL");
         assertThat(actual.getHostName(), is(""));
         assertThat(actual.getPort(), is(-1));
-        assertThat(actual.getSchemaName(), is("ds-0"));
+        assertNull(actual.getSchema());
     }
     
     @Test(expected = UnrecognizedDatabaseURLException.class)
-    public void assertGetPropertiesFailure() {
+    public void assertNewConstructorFailure() {
         new H2DataSourceMetaData("jdbc:h2:file:/data/sample");
     }
 }

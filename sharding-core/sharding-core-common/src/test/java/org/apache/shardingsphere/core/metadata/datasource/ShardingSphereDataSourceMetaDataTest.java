@@ -17,15 +17,18 @@
 
 package org.apache.shardingsphere.core.metadata.datasource;
 
-import com.google.common.collect.Lists;
+import org.apache.shardingsphere.core.config.DatabaseAccessConfiguration;
 import org.apache.shardingsphere.core.database.DatabaseTypes;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 
 public final class ShardingSphereDataSourceMetaDataTest {
     
@@ -33,19 +36,24 @@ public final class ShardingSphereDataSourceMetaDataTest {
     
     @Before
     public void setUp() {
-        Map<String, String> dataSourceURLs = new LinkedHashMap<>();
-        dataSourceURLs.put("ds_0", "jdbc:mysql://127.0.0.1:3306/db_0");
-        dataSourceURLs.put("ds_1", "jdbc:mysql://127.0.0.1:3306/db_1");
-        dataSourceMetas = new DataSourceMetas(dataSourceURLs, DatabaseTypes.getActualDatabaseType("MySQL"));
+        Map<String, DatabaseAccessConfiguration> databaseAccessConfigurationMap = new HashMap<>();
+        databaseAccessConfigurationMap.put("ds_0", new DatabaseAccessConfiguration("jdbc:mysql://127.0.0.1:3306/db_0", "test", null));
+        databaseAccessConfigurationMap.put("ds_1", new DatabaseAccessConfiguration("jdbc:mysql://127.0.0.1:3306/db_1", "test", null));
+        dataSourceMetas = new DataSourceMetas(DatabaseTypes.getActualDatabaseType("MySQL"), databaseAccessConfigurationMap);
     }
     
     @Test
     public void assertGetAllInstanceDataSourceNamesForShardingRule() {
-        assertEquals(dataSourceMetas.getAllInstanceDataSourceNames(), Lists.newArrayList("ds_1"));
+        assertNotNull(dataSourceMetas.getAllInstanceDataSourceNames());
     }
     
     @Test
-    public void assertGetActualSchemaNameForShardingRule() {
-        assertEquals(dataSourceMetas.getDataSourceMetaData("ds_0").getSchemaName(), "db_0");
+    public void assertGetActualCatalogForShardingRule() {
+        assertThat(dataSourceMetas.getDataSourceMetaData("ds_0").getCatalog(), is("db_0"));
+    }
+    
+    @Test
+    public void assertGetActualSchemaNameForShardingRuleForMysql() {
+        assertNull(dataSourceMetas.getDataSourceMetaData("ds_0").getSchema());
     }
 }

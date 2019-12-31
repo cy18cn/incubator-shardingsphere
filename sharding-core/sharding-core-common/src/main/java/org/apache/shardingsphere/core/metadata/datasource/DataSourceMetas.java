@@ -17,6 +17,7 @@
 
 package org.apache.shardingsphere.core.metadata.datasource;
 
+import org.apache.shardingsphere.core.config.DatabaseAccessConfiguration;
 import org.apache.shardingsphere.spi.database.DataSourceMetaData;
 import org.apache.shardingsphere.spi.database.DatabaseType;
 import org.apache.shardingsphere.spi.database.MemorizedDataSourceMetaData;
@@ -36,14 +37,14 @@ public final class DataSourceMetas {
     
     private final Map<String, DataSourceMetaData> dataSourceMetaDataMap;
     
-    public DataSourceMetas(final Map<String, String> dataSourceURLs, final DatabaseType databaseType) {
-        dataSourceMetaDataMap = getDataSourceMetaDataMap(dataSourceURLs, databaseType);
+    public DataSourceMetas(final DatabaseType databaseType, final Map<String, DatabaseAccessConfiguration> databaseAccessConfigurationMap) {
+        dataSourceMetaDataMap = getDataSourceMetaDataMap(databaseType, databaseAccessConfigurationMap);
     }
     
-    private Map<String, DataSourceMetaData> getDataSourceMetaDataMap(final Map<String, String> dataSourceURLs, final DatabaseType databaseType) {
-        Map<String, DataSourceMetaData> result = new HashMap<>(dataSourceURLs.size(), 1);
-        for (Entry<String, String> entry : dataSourceURLs.entrySet()) {
-            result.put(entry.getKey(), databaseType.getDataSourceMetaData(entry.getValue()));
+    private Map<String, DataSourceMetaData> getDataSourceMetaDataMap(final DatabaseType databaseType, final Map<String, DatabaseAccessConfiguration> databaseAccessConfigurationMap) {
+        Map<String, DataSourceMetaData> result = new HashMap<>(databaseAccessConfigurationMap.size(), 1);
+        for (Entry<String, DatabaseAccessConfiguration> entry : databaseAccessConfigurationMap.entrySet()) {
+            result.put(entry.getKey(), databaseType.getDataSourceMetaData(entry.getValue().getUrl(), entry.getValue().getUsername()));
         }
         return result;
     }
@@ -75,7 +76,7 @@ public final class DataSourceMetas {
     
     private boolean isInSameDatabaseInstance(final DataSourceMetaData sample, final DataSourceMetaData target) {
         return sample instanceof MemorizedDataSourceMetaData
-                ? target.getSchemaName().equals(sample.getSchemaName()) : target.getHostName().equals(sample.getHostName()) && target.getPort() == sample.getPort();
+                ? target.getSchema().equals(sample.getSchema()) : target.getHostName().equals(sample.getHostName()) && target.getPort() == sample.getPort();
     }
     
     /**

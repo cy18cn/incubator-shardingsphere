@@ -17,6 +17,7 @@
 
 package org.apache.shardingsphere.core.route.type.standard;
 
+import org.apache.shardingsphere.core.config.DatabaseAccessConfiguration;
 import org.apache.shardingsphere.core.database.DatabaseTypes;
 import org.apache.shardingsphere.core.metadata.ShardingSphereMetaData;
 import org.apache.shardingsphere.core.metadata.column.ColumnMetaData;
@@ -33,7 +34,6 @@ import org.apache.shardingsphere.sql.parser.SQLParseEngineFactory;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -53,25 +53,28 @@ public abstract class AbstractSQLRouteTest extends AbstractRoutingEngineTest {
     }
     
     private DataSourceMetas buildDataSourceMetas() {
-        Map<String, String> shardingDataSourceURLs = new LinkedHashMap<>();
-        shardingDataSourceURLs.put("main", "jdbc:mysql://127.0.0.1:3306/actual_db");
-        shardingDataSourceURLs.put("ds_0", "jdbc:mysql://127.0.0.1:3306/actual_db");
-        shardingDataSourceURLs.put("ds_1", "jdbc:mysql://127.0.0.1:3306/actual_db");
-        return new DataSourceMetas(shardingDataSourceURLs, DatabaseTypes.getActualDatabaseType("MySQL"));
+        Map<String, DatabaseAccessConfiguration> dataSourceInfoMap = new HashMap<>();
+        DatabaseAccessConfiguration mainDatabaseAccessConfiguration = new DatabaseAccessConfiguration("jdbc:mysql://127.0.0.1:3306/actual_db", "test", null);
+        DatabaseAccessConfiguration databaseAccessConfiguration0 = new DatabaseAccessConfiguration("jdbc:mysql://127.0.0.1:3306/actual_db", "test", null);
+        DatabaseAccessConfiguration databaseAccessConfiguration1 = new DatabaseAccessConfiguration("jdbc:mysql://127.0.0.1:3306/actual_db", "test", null);
+        dataSourceInfoMap.put("main", mainDatabaseAccessConfiguration);
+        dataSourceInfoMap.put("ds_0", databaseAccessConfiguration0);
+        dataSourceInfoMap.put("ds_1", databaseAccessConfiguration1);
+        return new DataSourceMetas(DatabaseTypes.getActualDatabaseType("MySQL"), dataSourceInfoMap);
     }
     
     private TableMetas buildTableMetas() {
         Map<String, TableMetaData> tableMetaDataMap = new HashMap<>(3, 1);
-        tableMetaDataMap.put("t_order", new TableMetaData(Arrays.asList(new ColumnMetaData("order_id", "int", true, true, true), 
-                new ColumnMetaData("user_id", "int", false, false, false), 
-                new ColumnMetaData("status", "int", false, false, false)), Collections.<String>emptySet()));
-        tableMetaDataMap.put("t_order_item", new TableMetaData(Arrays.asList(new ColumnMetaData("item_id", "int", true, true, true), 
-                new ColumnMetaData("order_id", "int", false, false, false),
-                new ColumnMetaData("user_id", "int", false, false, false), 
-                new ColumnMetaData("status", "varchar", false, false, false), 
-                new ColumnMetaData("c_date", "timestamp", false, false, false)), Collections.<String>emptySet()));
-        tableMetaDataMap.put("t_other", new TableMetaData(Collections.singletonList(new ColumnMetaData("order_id", "int", true, true, true)), Collections.<String>emptySet()));
-        tableMetaDataMap.put("t_category", new TableMetaData(Collections.singletonList(new ColumnMetaData("order_id", "int", true, true, true)), Collections.<String>emptySet()));
+        tableMetaDataMap.put("t_order", new TableMetaData(Arrays.asList(new ColumnMetaData("order_id", "int", true), 
+                new ColumnMetaData("user_id", "int", false), 
+                new ColumnMetaData("status", "int", false)), Collections.<String>emptySet()));
+        tableMetaDataMap.put("t_order_item", new TableMetaData(Arrays.asList(new ColumnMetaData("item_id", "int", true), 
+                new ColumnMetaData("order_id", "int", false),
+                new ColumnMetaData("user_id", "int", false), 
+                new ColumnMetaData("status", "varchar", false), 
+                new ColumnMetaData("c_date", "timestamp", false)), Collections.<String>emptySet()));
+        tableMetaDataMap.put("t_other", new TableMetaData(Collections.singletonList(new ColumnMetaData("order_id", "int", true)), Collections.<String>emptySet()));
+        tableMetaDataMap.put("t_category", new TableMetaData(Collections.singletonList(new ColumnMetaData("order_id", "int", true)), Collections.<String>emptySet()));
         return new TableMetas(tableMetaDataMap);
     }
 }

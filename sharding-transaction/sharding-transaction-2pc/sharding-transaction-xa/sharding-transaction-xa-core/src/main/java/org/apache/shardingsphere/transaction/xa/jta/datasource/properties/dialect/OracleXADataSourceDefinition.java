@@ -46,12 +46,12 @@ public final class OracleXADataSourceDefinition implements XADataSourceDefinitio
     @Override
     public Properties getXAProperties(final DatabaseAccessConfiguration databaseAccessConfiguration) {
         Properties result = new Properties();
-        OracleDataSourceMetaData dataSourceMetaData = new OracleDataSourceMetaData(databaseAccessConfiguration.getUrl());
+        OracleDataSourceMetaData dataSourceMetaData = new OracleDataSourceMetaData(databaseAccessConfiguration.getUrl(), null);
         result.setProperty("user", databaseAccessConfiguration.getUsername());
         result.setProperty("password", Optional.fromNullable(databaseAccessConfiguration.getPassword()).or(""));
         result.setProperty("serverName", dataSourceMetaData.getHostName());
         result.setProperty("portNumber", String.valueOf(dataSourceMetaData.getPort()));
-        result.setProperty("databaseName", dataSourceMetaData.getSchemaName());
+        result.setProperty("databaseName", dataSourceMetaData.getCatalog());
         return result;
     }
 }

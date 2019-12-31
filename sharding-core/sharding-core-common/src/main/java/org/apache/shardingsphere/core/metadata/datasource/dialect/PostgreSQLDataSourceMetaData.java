@@ -39,7 +39,9 @@ public final class PostgreSQLDataSourceMetaData implements DataSourceMetaData {
     
     private final int port;
     
-    private final String schemaName;
+    private final String catalog;
+    
+    private final String schema;
     
     private final Pattern pattern = Pattern.compile("jdbc:postgresql://([\\w\\-\\.]+):?([0-9]*)/([\\w\\-]+)", Pattern.CASE_INSENSITIVE);
     
@@ -50,6 +52,7 @@ public final class PostgreSQLDataSourceMetaData implements DataSourceMetaData {
         }
         hostName = matcher.group(1);
         port = Strings.isNullOrEmpty(matcher.group(2)) ? DEFAULT_PORT : Integer.valueOf(matcher.group(2));
-        schemaName = matcher.group(3);
+        catalog = matcher.group(3);
+        schema = null;
     }
 }
